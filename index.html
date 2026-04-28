@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>RecallHero Prototype</title>
+  <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #0f0e0d;
+      --surface: #1a1916;
+      --border:  #2e2c28;
+      --muted:   #5a5750;
+      --text:    #e8e4dc;
+      --accent:  #d4a847;
+      --green:   #6fcf97;
+      --red:     #eb5757;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      min-height: 100vh;
+      padding: 48px 24px 80px;
+    }
+
+    header {
+      max-width: 720px;
+      margin: 0 auto 48px;
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 24px;
+    }
+
+    header h1 {
+      font-family: 'Instrument Serif', serif;
+      font-size: 2.4rem;
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      color: var(--text);
+    }
+
+    header p {
+      margin-top: 8px;
+      font-size: 0.75rem;
+      color: var(--muted);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .container { max-width: 720px; margin: 0 auto; }
+
+    .input-block { margin-bottom: 24px; }
+
+    label {
+      display: block;
+      font-size: 0.65rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 10px;
+    }
+
+    textarea {
+      width: 100%;
+      height: 220px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.82rem;
+      line-height: 1.7;
+      padding: 16px;
+      resize: vertical;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    textarea:focus { border-color: var(--accent); }
+    textarea::placeholder { color: var(--muted); }
+
+    button#generate {
+      width: 100%;
+      padding: 14px;
+      background: var(--accent);
+      color: #0f0e0d;
+      border: none;
+      border-radius: 6px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.78rem;
+      font-weight: 600;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+    }
+    button#generate:hover  { opacity: 0.88; }
+    button#generate:active { transform: scale(0.985); }
+    button#generate:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    #status {
+      margin-top: 14px;
+      font-size: 0.72rem;
+      color: var(--muted);
+      min-height: 18px;
+      letter-spacing: 0.06em;
+    }
+    #status.error { color: var(--red); }
+    #status.ok    { color: var(--green); }
+
+    #results {
+      display: none;
+      margin-top: 40px;
+      gap: 16px;
+      flex-direction: column;
+    }
+    #results.visible { display: flex; }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 24px 28px;
+      position: relative;
+      animation: fadeUp 0.35s ease both;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .card-tag {
+      font-size: 0.6rem;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .card-tag::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    .card-title {
+      font-family: 'Instrument Serif', serif;
+      font-size: 1.2rem;
+      font-weight: 400;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+
+    .card-body {
+      font-size: 0.85rem;
+      line-height: 1.8;
+      color: #b5b0a6;
+    }
+
+    .card-body ul {
+      list-style: none;
+      padding: 0;
+    }
+    .card-body ul li {
+      padding-left: 18px;
+      position: relative;
+      margin-bottom: 12px;
+    }
+    .card-body ul li::before {
+      content: '→';
+      position: absolute;
+      left: 0;
+      color: var(--accent);
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 10px; height: 10px;
+      border: 2px solid var(--muted);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>RecallHero</h1>
+  <p>Move from Overwhelmed to Prepared in 60 Seconds</p>
+</header>
+
+<div class="container">
+  <div class="input-block">
+    <label for="notes">Input Notes</label>
+    <textarea id="notes" placeholder="Paste your study notes or slides here..."></textarea>
+  </div>
+
+  <button id="generate" onclick="generate()">Simplify My Life</button>
+  <div id="status"></div>
+
+  <div id="results">
+    <div class="card">
+      <div class="card-tag">The Skinny</div>
+      <div class="card-title">Quick Summary</div>
+      <div id="out-skinny" class="card-body"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-tag">The Recall</div>
+      <div class="card-title">Practice Quiz</div>
+      <div id="out-recall" class="card-body"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-tag">The Anchor</div>
+      <div class="card-title">Mnemonic Memory Hook</div>
+      <div id="out-anchor" class="card-body" style="font-style: italic; color: var(--accent);"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+  async function generate() {
+    const notes  = document.getElementById('notes').value.trim();
+    const btn    = document.getElementById('generate');
+    const status = document.getElementById('status');
+    const results = document.getElementById('results');
+
+    if (!notes) {
+      setStatus('Please paste some notes first.', 'error');
+      return;
+    }
+
+    btn.disabled = true;
+    results.classList.remove('visible');
+    setStatus('<span class="spinner"></span>Processing with Gemini AI...', '');
+
+    try {
+      const res  = await fetch('http://localhost:5000/generate', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ notes })
+      });
+
+      const data = await res.json();
+
+      if (data.error) {
+        setStatus('Error: ' + data.error, 'error');
+        return;
+      }
+
+      // Populate The Skinny (Summary List)
+      const skinnyEl = document.getElementById('out-skinny');
+      if (Array.isArray(data.the_skinny)) {
+        skinnyEl.innerHTML = '<ul>' + data.the_skinny.map(s => `<li>${s}</li>`).join('') + '</ul>';
+      } else {
+        skinnyEl.textContent = data.the_skinny;
+      }
+
+      // Populate The Recall (Quiz Questions)
+      const recallEl = document.getElementById('out-recall');
+      if (Array.isArray(data.the_recall)) {
+        recallEl.innerHTML = '<ul>' + data.the_recall.map(q => 
+          `<li><strong>${q.question}</strong><br>Options: ${q.options.join(', ')}<br><small>Answer: ${q.correct_answer}</small></li>`
+        ).join('') + '</ul>';
+      } else {
+        recallEl.textContent = "Check AI Studio logic for formatting.";
+      }
+
+      // Populate The Anchor (Mnemonic)
+      document.getElementById('out-anchor').textContent = data.the_anchor || '—';
+
+      results.classList.add('visible');
+      setStatus('Success!', 'ok');
+
+    } catch (err) {
+      setStatus('Cannot reach server. Make sure app.py is running!', 'error');
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
+  function setStatus(msg, type) {
+    const el = document.getElementById('status');
+    el.innerHTML = msg;
+    el.className = type;
+  }
+</script>
+</body>
+</html>
