@@ -8,7 +8,7 @@ CORS(app)
 
 # --- RE-PASTE YOUR NEW KEY HERE ---
 # If you get a 429 error, wait 60 seconds.
-client = genai.Client(api_key="AIzaSyACJk6M0Rljvu-goV8rnQma4YfFxPXwqns")
+client = genai.Client(api_key="YOUR_API_KEY_HERE")
 
 @app.route("/generate", methods=["POST"])
 def generate():
